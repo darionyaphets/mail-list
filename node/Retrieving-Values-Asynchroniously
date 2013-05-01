@@ -1,0 +1,101 @@
+In the synchronous world I have 
+
+var num1 =  Object1.retrieveNum1();
+var num2 = Object2.retrieveNum2();
+var num3 = Object3.retrieveNum3();
+
+var result = (num1 + num2) /  num3;
+
+and the Async is:
+
+Object1.retrieveNum1Async(function(num1){
+    Object2.retrieveNum2Async(function(num2){
+        Object3.retrieveNum3Async(function(num3){            
+            var result = (num1 + num2) /  num3;                  
+        });
+    });
+});
+
+it's idiomatic ...  so has some way better
+
+----------------------------------------------------------------------------
+
+Async is a easy way : 
+
+var async = require('async');
+
+async.parallel([
+  function(callback){
+    Object1.retrieveNum1Async(function(err, num1){
+      callback(err, num1);
+    });
+  },
+
+  function(callback){
+    Object2.retrieveNum2Async(function(err, num2){
+      callback(err, num2);
+    });
+  },
+
+  function(callback){
+    Object3.retrieveNum3Async(function(err, num3){
+      callback(err, num3);
+    });
+  }
+], function(err, results){
+  if(err) throw err;
+
+  // Your results will now be an array of [num1, num2, num3]
+  var temp = (results[0] + results[1]) / results[2];
+);
+
+----------------------------------------------------------------------------
+streamline.js is a language tool to simplify asynchronous Javascript programming.
+https://github.com/Sage/streamlinejs
+
+
+----------------------------------------------------------------------------
+
+the idiomatic way to do this in node is to use the async library and to have callback functions 
+that take an error ("err") as the first argument.
+
+The reason why it's important to have each asynchronous function pass an error object to your callback
+is because it is impossible for the asynchronous operation to throw an error in such a way that your 
+callback function can catch it, like you can with traditional, synchronous programming. 
+
+For instance, if there is a database error or a calculation error, 
+you probably want to short-circuit and display the error.
+
+
+so  it maybe look like :
+for you code :
+
+Object1.retrieveNum1Async(function(err, num1){
+      if (err) throw err;
+      Object2.retrieveNum2Async(function(err, num2){
+            if (err) throw err;
+            Object3.retrieveNum3Async(function(err, num3){            
+                 if (err) throw err;
+                 var result = (num1 + num2) /  num3;                  
+            });
+      });
+});
+
+
+using async library:
+it like 
+
+var async = require('async');
+async.parallel({
+    'num1': Object1.retrieveNum1Async.bind(Object1),
+    'num2': Object2.retrieveNum2Async.bind(Object2),
+    'num3': Object3.retrieveNum3Async.bind(Object3)
+}, function(err, r) {
+    var result = (r.num1 + r.num2) / r.num3;
+});
+
+
+
+
+----------------------------------------------------------------------------
+
